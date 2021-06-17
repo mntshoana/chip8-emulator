@@ -1,5 +1,5 @@
 #include <cstdint>
-
+#include <fstream>
 class Chip8
 {
 public:
@@ -38,4 +38,21 @@ public:
     // for holding any of the
     // CHIP-8 34 instructions that we need to emulate
     uint16_t opcode;
+    
+    // Constructor
+    Chip8();
+    
+    void LoadROM(char const* filename);
 };
+
+const unsigned int START_ADDRESS = 0x200;
+
+Chip8::Chip8(){
+    // Initialize the program counter
+    pc = START_ADDRESS;
+}
+
+void Chip8::LoadROM(char const* filename){
+    // Todo
+    return;
+}
