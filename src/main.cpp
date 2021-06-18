@@ -53,6 +53,26 @@ Chip8::Chip8(){
 }
 
 void Chip8::LoadROM(char const* filename){
-    // Todo
+    // File will carry stream of binary with instructions
+    std::ifstream file(filename, std::ios::binary | std::ios::ate);
+
+    if (file.is_open()){
+        std::streampos size = file.tellg();
+        char* buffer = new char[size];
+
+        // Return pointer to the beginning and fill the buffer
+        file.seekg(0, std::ios::beg);
+        file.read(buffer, size);
+        file.close();
+
+        // NB! Memory from 0x000 to 0x1FF is reserved
+        // Load ROM contents from 0x200
+        for (long i = 0; i < size; ++i){
+            memory[START_ADDRESS + i] = buffer[i];
+        }
+
+        // Cleanup
+        delete[] buffer;
+    }
     return;
 }
