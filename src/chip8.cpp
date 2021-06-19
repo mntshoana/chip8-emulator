@@ -73,7 +73,7 @@ void Chip8::OP_2nnn_CALL(){
 // Instruction: SE Vx, byte
 // Skips the following instruction on a condition that Vx = kk
 // Note, pc already incremented, so to skip the next instruction, increment pc only once to skip
-void OP_3xkk_SE(){
+void Chip8::OP_3xkk_SE(){
     uint8_t Vx = (opcode & 0x0F00u) >> 8u; // snuff out 8 lower order bits
     uint8_t byte = opcode & 0x00FFu;
 
@@ -86,7 +86,7 @@ void OP_3xkk_SE(){
 // Instruction: SNE Vx, byte
 // Skips the following instruction on a condition that Vx != kk
 // Note, pc already incremented, so to skip the next instruction, increment pc only once to skip
-void OP_4xkk_SNE(){
+void Chip8::OP_4xkk_SNE(){
     uint8_t Vx = (opcode & 0x0F00u) >> 8u; // remove 8 lower order bits
     uint8_t byte = opcode & 0x00FFu;
 
@@ -99,16 +99,7 @@ void OP_4xkk_SNE(){
 // Instruction: SE Vx, Vy
 // Skips the following instruction on a condition that Vx = vy
 // Note, pc already incremented, so to skip the next instruction, increment pc only once to skip
-void OP_3xkk_SE(){
-    uint8_t Vx = (opcode & 0x0F00u) >> 8u; // snuff out 8 lower order bits
-    uint8_t byte = opcode & 0x00FFu;
-
-    if (registers[Vx] == byte)
-    {
-        pc += 2; // skips next instruction
-    }
-}
-void OP_5xy0_SE(){
+void Chip8::OP_5xy0_SE(){
     uint8_t Vx = (opcode & 0x0F00u) >> 8u; // snuff out 8 lower order bits
     uint8_t Vy = (opcode & 0x00F0u) >> 4u; // snuff out 4 lower order bits
 
@@ -116,4 +107,89 @@ void OP_5xy0_SE(){
     {
         pc += 2; // skips over next instruction
     }
+}
+
+// Instruction: LD Vx, byte
+// Sets a register ( Vx)
+void Chip8::OP_6xkk_LD(){
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u; // snuff out 8 lower order bits
+    uint8_t byte = opcode & 0x00FFu;
+
+    registers[Vx] = byte;
+}
+
+// Adds
+void Chip8::OP_7xkk_ADD(){
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u; // remove 8 lower order bits
+    uint8_t byte = opcode & 0x00FFu;
+
+    registers[Vx] += byte;
+}
+
+// Instruction: LD Vx, Vy
+// Sets a register ( Vx) with contents of another register
+void Chip8::OP_8xy0_LD(){
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t Vy = (opcode & 0x00F0u) >> 4u;
+
+    registers[Vx] = registers[Vy];
+}
+
+// Instruction: OR Vx, Vy
+void Chip8::OP_8xy1_OR(){
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t Vy = (opcode & 0x00F0u) >> 4u;
+
+    registers[Vx] |= registers[Vy];
+}
+
+// Instruction: AND Vx, Vy
+void Chip8::OP_8xy2_AND(){
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t Vy = (opcode & 0x00F0u) >> 4u;
+
+    registers[Vx] &= registers[Vy];
+}
+
+// Instruction: XOR Vx, Vy
+void Chip8::OP_8xy3_XOR(){
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t Vy = (opcode & 0x00F0u) >> 4u;
+
+    registers[Vx] ^= registers[Vy];
+}
+
+// Adds
+void Chip8::OP_8xy4_ADD(){
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u; // snuff out 8 lower order bits
+    uint8_t Vy = (opcode & 0x00F0u) >> 4u; // snuff out 4 lower order bits
+
+    uint16_t sum = registers[Vx] + registers[Vy];
+
+    if (sum > 255U)
+    { // Set overflow bit, VF
+        registers[0xF] = 1;
+    }
+    else
+    {
+        registers[0xF] = 0;
+    }
+
+    registers[Vx] = sum & 0xFFu; // only store 8 bits
+}
+
+void Chip8::OP_8xy5_SUB(){
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u; // snuff out 8 lower order bits
+    uint8_t Vy = (opcode & 0x00F0u) >> 4u; // snuff out 4 lower order bits
+
+    if (registers[Vx] > registers[Vy])
+    { // Set NOT borrow bit, VF
+        registers[0xF] = 1;
+    }
+    else
+    {
+        registers[0xF] = 0;
+    }
+
+    registers[Vx] -= registers[Vy];
 }

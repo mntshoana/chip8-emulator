@@ -58,6 +58,20 @@ public:
     void OP_4xkk_SNE();
     // Skips next instruction if Vx = Vy. note, instruction looks like: SE Vx, Vy
     void OP_5xy0_SE();
+    // Sets Vx.
+    void OP_6xkk_LD(); // note, instruction looks like LD Vx, byte
+    void OP_8xy0_LD(); // note, instruction looks like LD Vx, Vy
+    // Adds a value to register's value
+    void OP_7xkk_ADD(); // note, instruction looks like ADD Vx, byte
+    void OP_8xy4_ADD(); // note, instruction looks like ADD Vx, Vy
+    // Sets Vx with result of OR operation: OR Vx, Vy
+    void OP_8xy1_OR();
+    // Sets Vx with result of AND operation: AND Vx, Vy
+    void OP_8xy2_AND();
+    // Sets Vx with result of XOR operation: XOR Vx, Vy
+    void OP_8xy3_XOR();
+    // Subtracts a value from a register's value
+    void OP_8xy5_SUB(); // note, instruction looks like SUB Vx, Vy
 };
 
 #endif
