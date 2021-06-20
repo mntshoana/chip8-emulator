@@ -16,6 +16,9 @@ Chip8::Chip8() {
     // normally achieved by, reading the value from a noisy disconnected pin or using a dedicated RNG chip
     ranomdGenerator = std::default_random_engine(std::chrono::system_clock::now().time_since_epoch().count());
     randDistribByte = std::uniform_int_distribution<uint8_t>(0, 255U); // between 0 and 255
+    
+    // prepare array of function pointers for the opcode. 
+    setUpPointerTable();
 }
 
 void Chip8::LoadROM(char const* filename){
@@ -226,7 +229,7 @@ void Chip8::OP_8xy7_SUBN()
 }
 
 // shifts bits to the left, by 1
-void OP_8xyE_SHL(){
+void Chip8::OP_8xyE_SHL(){
     uint8_t Vx = (opcode & 0x0F00u) >> 8u;
 
     // Save MSB in VF
@@ -258,13 +261,21 @@ void Chip8::OP_Annn_LD(){
     index = address;
 }
 
+// instruction: JP V0, addr
+// Jumps to the addr of V0 + nnn.
+void Chip8::OP_Bnnn_JP(){
+    uint16_t address = opcode & 0x0FFFu;
+
+    pc = registers[0] + address;
+}
+
 // instruction: RND Vx, byte
 // Set Vx to: (random byte) AND kk.
 void Chip8::OP_Cxkk_RND(){
     uint8_t Vx = (opcode & 0x0F00u) >> 8u;
     uint8_t byte = opcode & 0x00FFu;
 
-    registers[Vx] = randByte(randGen) & byte;
+    registers[Vx] = randDistribByte(ranomdGenerator) & byte;
 }
 
 // instruction: DRW Vx, Vy, nibble
@@ -458,4 +469,79 @@ void Chip8::OP_Fx65_LD(){
     {
         registers[i] = memory[index + i];
     }
+}
+
+// Sets up the Pointer Table
+// This array is used to index the mapped opcode functions using the opcode itself
+void Chip8::setUpPointerTable(){
+    table[0x0] = &Chip8::Table0;
+    table[0x1] = &Chip8::OP_1nnn_JP;
+    table[0x2] = &Chip8::OP_2nnn_CALL;
+    table[0x3] = &Chip8::OP_3xkk_SE;
+    table[0x4] = &Chip8::OP_4xkk_SNE;
+    table[0x5] = &Chip8::OP_5xy0_SE;
+    table[0x6] = &Chip8::OP_6xkk_LD;
+    table[0x7] = &Chip8::OP_7xkk_ADD;
+    table[0x8] = &Chip8::Table8;
+    table[0x9] = &Chip8::OP_9xy0_SNE;
+    table[0xA] = &Chip8::OP_Annn_LD;
+    table[0xB] = &Chip8::OP_Bnnn_JP;
+    table[0xC] = &Chip8::OP_Cxkk_RND;
+    table[0xD] = &Chip8::OP_Dxyn_DRW;
+    table[0xE] = &Chip8::TableE;
+    table[0xF] = &Chip8::TableF;
+
+    table0[0x0] = &Chip8::OP_00E0_CLS;
+    table0[0xE] = &Chip8::OP_00EE_RET;
+
+    table8[0x0] = &Chip8::OP_8xy0_LD;
+    table8[0x1] = &Chip8::OP_8xy1_OR;
+    table8[0x2] = &Chip8::OP_8xy2_AND;
+    table8[0x3] = &Chip8::OP_8xy3_XOR;
+    table8[0x4] = &Chip8::OP_8xy4_ADD;
+    table8[0x5] = &Chip8::OP_8xy5_SUB;
+    table8[0x6] = &Chip8::OP_8xy6_SHR;
+    table8[0x7] = &Chip8::OP_8xy7_SUBN;
+    table8[0xE] = &Chip8::OP_8xyE_SHL;
+
+    tableE[0x1] = &Chip8::OP_ExA1_SKNP;
+    tableE[0xE] = &Chip8::OP_Ex9E_SKP;
+
+    tableF[0x07] = &Chip8::OP_Fx07_LD;
+    tableF[0x0A] = &Chip8::OP_Fx0A_LD;
+    tableF[0x15] = &Chip8::OP_Fx15_LD;
+    tableF[0x18] = &Chip8::OP_Fx18_LD;
+    tableF[0x1E] = &Chip8::OP_Fx1E_ADD;
+    tableF[0x29] = &Chip8::OP_Fx29_LD;
+    tableF[0x33] = &Chip8::OP_Fx33_LD;
+    tableF[0x55] = &Chip8::OP_Fx55_LD;
+    tableF[0x65] = &Chip8::OP_Fx65_LD;
+}
+
+void Chip8::Table0()
+{
+    uint16_t ref = opcode & 0x000Fu;
+    (this->*table0[ref])();
+}
+
+void Chip8::Table8()
+{
+    uint16_t ref = opcode & 0x000Fu;
+    (this->*table8[ref])();
+}
+
+void Chip8::TableE()
+{
+    uint16_t ref = opcode & 0x000Fu;
+    (this->*tableE[ref])();
+}
+
+void Chip8::TableF()
+{
+    uint16_t ref = opcode & 0x00FFu;
+    (this->*tableF[ref])();
+}
+
+void Chip8::NULL_OP_DO_NOTHING(){
+    // Do nothing
 }

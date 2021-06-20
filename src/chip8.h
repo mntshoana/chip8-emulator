@@ -7,6 +7,10 @@
 #include <random>
 
 #include "chip8-Constants.h"
+
+const unsigned int VIDEO_HEIGHT = 32;
+const unsigned int VIDEO_WIDTH = 64;
+
 class Chip8 {
     // REFERENCE at: http://devernay.free.fr/hacks/chip8/C8TECH10.HTM
 public:
@@ -44,6 +48,9 @@ public:
     Chip8();
     
     void LoadROM(char const* filename);
+    
+    // Functions to map to opcode
+    
     // Clear the display
     void OP_00E0_CLS();
     // Returns from a subroutine
@@ -82,14 +89,14 @@ public:
     void OP_9xy0_SNE(); // note, instruction looks like: SNE Vx, Vy
     // Sets the index register to a given value
     void OP_Annn_LD(); // note, instruction looks like: LD I, addr
-    // Jump to the location addr + V0.
+    // Jumps to the addr of V0 + nnn.
     void OP_Bnnn_JP(); // note, instruction looks like: JP V0, addr
     // Set Vx to: (random byte) AND kk.
     void OP_Cxkk_RND(); // note, instruction looks like: RND Vx, byte
     // Displays n-byte sprite from I at (Vx, Vy), and sets VF to express a collision.
     void OP_Dxyn_DRW(); // note, instruction looks like: DRW Vx, Vy, nibble
     // Skips the next instruction if user presses the key with the value of Vx
-    void OP_Ex9E_SKNP(); // note, instruction looks like: SKP Vx
+    void OP_Ex9E_SKP(); // note, instruction looks like: SKP Vx
     // Skips the next instruction if user does not press the key with the value of Vx
     void OP_ExA1_SKNP(); // note, instruction looks like: SKNP Vx
     // Sets Vx with a delay timer value
@@ -110,6 +117,24 @@ public:
     void OP_Fx55_LD(); // note, instruction looks like: LD [I], Vx
     // Loads registers V0 through Vx from memory, starting from location I
     void OP_Fx65_LD(); // note, instruction looks like: LD Vx, [I]
+    
+    // Sets up the Pointer Table
+    // This array is used to index the mapped opcode functions using the opcode itself
+    void setUpPointerTable();
+    // Helpers for setUpPointerTable
+    void Table0();
+    void Table8();
+    void TableE();
+    void TableF();
+    void NULL_OP_DO_NOTHING();
+    
+    typedef void (Chip8::*opcodeTableFnPtr)();
+    // Create table arrays and initialize them to point to default function with an empty body
+    opcodeTableFnPtr table [0xF + 1] { &Chip8::NULL_OP_DO_NOTHING }; // main table pointer array
+    opcodeTableFnPtr table0[0xE + 1]{ &Chip8::NULL_OP_DO_NOTHING }; // nested table pointer array
+    opcodeTableFnPtr table8[0xE + 1]{ &Chip8::NULL_OP_DO_NOTHING }; // nested table pointer array
+    opcodeTableFnPtr tableE[0xE + 1]{ &Chip8::NULL_OP_DO_NOTHING }; // nested table pointer array
+    opcodeTableFnPtr tableF[0x65 + 1]{ &Chip8::NULL_OP_DO_NOTHING }; // nested table pointer array
 };
 
 #endif
