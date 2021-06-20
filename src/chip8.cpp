@@ -54,7 +54,7 @@ void Chip8::OP_00EE_RET(){
     pc = stack[sp];
 }
 
-// Sets the program counter to nnn.
+// Sets the program counter to addr
 // No stack interaction required for a jump
 void Chip8::OP_1nnn_JP(){
     uint16_t address = opcode & 0x0FFFu;
@@ -178,6 +178,7 @@ void Chip8::OP_8xy4_ADD(){
     registers[Vx] = sum & 0xFFu; // only store 8 bits
 }
 
+// Subtracts
 void Chip8::OP_8xy5_SUB(){
     uint8_t Vx = (opcode & 0x0F00u) >> 8u; // snuff out 8 lower order bits
     uint8_t Vy = (opcode & 0x00F0u) >> 4u; // snuff out 4 lower order bits
@@ -192,4 +193,117 @@ void Chip8::OP_8xy5_SUB(){
     }
 
     registers[Vx] -= registers[Vy];
+}
+
+// Instruction: SHR Vx
+// Shifts bits to the right by 1
+void Chip8::OP_8xy6_SHR(){
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u; // snuff out 8 lower order bits
+    
+    // If most-significant bit is 1, then VF is set to 1
+    registers[0xF] = (registers[Vx] & 0x1u); // Save LSB in VF
+
+    registers[Vx] >>= 1;
+}
+
+// subtracts register value from another register value
+// note, SUBN Vx, Vy sets Vx = Vy - Vx
+void Chip8::OP_8xy7_SUBN()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t Vy = (opcode & 0x00F0u) >> 4u;
+
+    if (registers[Vy] > registers[Vx])
+    { //  set VF = NOT borrow.
+        registers[0xF] = 1;
+    }
+    else
+    {
+        registers[0xF] = 0;
+    }
+    // the result is stored in Vx.
+    registers[Vx] = registers[Vy] - registers[Vx];
+}
+
+// shifts bits to the left, by 1
+void OP_8xyE_SHL(){
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    // Save MSB in VF
+    // If most-significant bit is 1, then VF is set to 1
+    registers[0xF] = (registers[Vx] & 0x80u) >> 7u;
+    
+    registers[Vx] <<= 1;
+}
+
+// Instruction: SNE Vx, Vy
+// Skips the following instruction on a condition that Vx != vy
+// Note, pc already incremented, so to skip the next instruction, increment pc only once to skip
+void Chip8::OP_9xy0_SNE()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t Vy = (opcode & 0x00F0u) >> 4u;
+
+    if (registers[Vx] != registers[Vy])
+    {
+        pc += 2; // skips over next instruction
+    }
+}
+
+// instruction: LD I, addr
+// Sets a register the index register to a given address ( I)
+void Chip8::OP_Annn_LD(){
+    uint16_t address = opcode & 0x0FFFu;
+
+    index = address;
+}
+
+// instruction: RND Vx, byte
+// Set Vx to: (random byte) AND kk.
+void Chip8::OP_Cxkk_RND(){
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t byte = opcode & 0x00FFu;
+
+    registers[Vx] = randByte(randGen) & byte;
+}
+
+// instruction: DRW Vx, Vy, nibble
+// Displays n-byte sprite from memory of index register at (Vx, Vy), and sets VF to express a collision.
+void OP_Dxyn_DRW(){
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t Vy = (opcode & 0x00F0u) >> 4u;
+    uint8_t height = opcode & 0x000Fu; // n-bytes
+
+    // Wraps around screen beyond boundaries
+    uint8_t xPos = registers[Vx] % VIDEO_WIDTH;
+    uint8_t yPos = registers[Vy] % VIDEO_HEIGHT;
+
+    // Reset VF in order to use it to express collisions
+    registers[0xF] = 0;
+
+    for (unsigned int row = 0; row < height; ++row)
+    {
+        // from memory of index register until n-bytse
+        uint8_t spriteByte = memory[index + row];
+        // There may be a screen pixel collision with what’s already being displayed
+        for (unsigned int col = 0; col < 8; ++col)
+        { // sprites are eight bits wide (represents 8 pixels of screen width)
+            uint8_t spritePixel = spriteByte & (0x80u >> col);
+            // retrieve current pixel
+            uint32_t* screenPixel = &displayMemory[(yPos + row) * VIDEO_WIDTH + (xPos + col)];
+
+            // Sprite pixel is on
+            if (spritePixel)
+            {
+                // Screen pixel is also on
+                if (*screenPixel == 0xFFFFFFFF)
+                {// equals collision
+                    registers[0xF] = 1;
+                }
+
+                // Effectively XOR with the sprite pixel
+                *screenPixel ^= 0xFFFFFFFF;
+            }
+        }
+    }
 }
