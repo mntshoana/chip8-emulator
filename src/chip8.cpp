@@ -547,5 +547,18 @@ void Chip8::NULL_OP_DO_NOTHING(){
 }
 
 void Chip8::cycle(){
-    // Todo
+    // Fetch instruction using pc counter and then increment program counter
+    opcode = (memory[pc] << 8u) | memory[pc + 1];
+    pc += 2;
+    // Execute opcode using appropriate function from the opcode table pointer
+    uint16_t LeftMostDigit = opcode & 0xF000u) >> 12u;
+    (this->*table[LeftMostDigit])();
+    
+    if (delayTimer > 0)
+        // Decrement if it's been set
+        --delayTimer;
+
+    if (soundTimer > 0)
+        // Decrement if it's been set
+        --soundTimer;
 }

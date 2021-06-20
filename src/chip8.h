@@ -13,15 +13,14 @@ const unsigned int VIDEO_WIDTH = 64;
 
 class Chip8 {
     // REFERENCE at: http://devernay.free.fr/hacks/chip8/C8TECH10.HTM
-public:
-    uint8_t registers[16]{}; // 16 registers
-    uint8_t memory[4096]{}; // 4K byte of memory
+    uint8_t  registers[16]{}; // 16 registers
+    uint8_t  memory[4096]{}; // 4K byte of memory
     uint16_t index{}; // 16 bit index register
     uint16_t pc{}; // 16 bit program counter
     uint16_t stack[16]{}; // 16 level stack
-    uint8_t sp{}; // 8 bit stack pointer
-    uint8_t delayTimer{}; // 8 bit delay timer
-    uint8_t soundTimer{}; // 8 bit sound timer
+    uint8_t  sp{}; // 8 bit stack pointer
+    uint8_t  delayTimer{}; // 8 bit delay timer
+    uint8_t  soundTimer{}; // 8 bit sound timer
     /*
      Keypad       Keyboard
      +-+-+-+-+    +-+-+-+-+
@@ -34,7 +33,7 @@ public:
      |A|0|B|F|    |Z|X|C|V|
      +-+-+-+-+    +-+-+-+-+
      */
-    uint8_t keypad[16]{}; // 16 input keys
+    uint8_t  keypad[16]{}; // 16 input keys
     uint32_t displayMemory[64 * 32]{}; // 64x32 Monochrome Display Memory
     
     uint16_t opcode; // for holding any of the 34 instructions
@@ -44,11 +43,16 @@ public:
     //
     std::default_random_engine ranomdGenerator;
     std::uniform_int_distribution<uint8_t> randDistribByte;
+    
+public:
     // Constructor
     Chip8();
     
     void LoadROM(char const* filename);
-    
+    // Emulates the Fetch, Decode, Execute clock cycle of the Chip8 CPU
+    void cycle();
+
+private:
     // Functions to map to opcode
     
     // Clear the display
@@ -136,8 +140,6 @@ public:
     opcodeTableFnPtr tableE[0xE + 1]{ &Chip8::NULL_OP_DO_NOTHING }; // nested table pointer array
     opcodeTableFnPtr tableF[0x65 + 1]{ &Chip8::NULL_OP_DO_NOTHING }; // nested table pointer array
     
-    // Emulates the Fetch, Decode, Execute cycle of the Chip8 CPU
-    void cycle();
 };
 
 #endif
