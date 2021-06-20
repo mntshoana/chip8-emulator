@@ -551,7 +551,7 @@ void Chip8::cycle(){
     opcode = (memory[pc] << 8u) | memory[pc + 1];
     pc += 2;
     // Execute opcode using appropriate function from the opcode table pointer
-    uint16_t LeftMostDigit = opcode & 0xF000u) >> 12u;
+    uint16_t LeftMostDigit = (opcode & 0xF000u) >> 12u;
     (this->*table[LeftMostDigit])();
     
     if (delayTimer > 0)
