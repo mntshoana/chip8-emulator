@@ -135,6 +135,9 @@ public:
     opcodeTableFnPtr table8[0xE + 1]{ &Chip8::NULL_OP_DO_NOTHING }; // nested table pointer array
     opcodeTableFnPtr tableE[0xE + 1]{ &Chip8::NULL_OP_DO_NOTHING }; // nested table pointer array
     opcodeTableFnPtr tableF[0x65 + 1]{ &Chip8::NULL_OP_DO_NOTHING }; // nested table pointer array
+    
+    // Emulates the Fetch, Decode, Execute cycle of the Chip8 CPU
+    void cycle();
 };
 
 #endif

@@ -545,3 +545,7 @@ void Chip8::TableF()
 void Chip8::NULL_OP_DO_NOTHING(){
     // Do nothing
 }
+
+void Chip8::cycle(){
+    // Todo
+}
