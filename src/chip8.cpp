@@ -269,7 +269,7 @@ void Chip8::OP_Cxkk_RND(){
 
 // instruction: DRW Vx, Vy, nibble
 // Displays n-byte sprite from memory of index register at (Vx, Vy), and sets VF to express a collision.
-void OP_Dxyn_DRW(){
+void Chip8::OP_Dxyn_DRW(){
     uint8_t Vx = (opcode & 0x0F00u) >> 8u;
     uint8_t Vy = (opcode & 0x00F0u) >> 4u;
     uint8_t height = opcode & 0x000Fu; // n-bytes
@@ -305,5 +305,157 @@ void OP_Dxyn_DRW(){
                 *screenPixel ^= 0xFFFFFFFF;
             }
         }
+    }
+}
+
+// Instruction: SKP Vx
+// Skips the next instruction if the user presses a key with the value of Vx
+// Note, pc already incremented, so to skip the next instruction, increment pc only once to skip
+void Chip8::OP_Ex9E_SKP(){
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    uint8_t key = registers[Vx];
+
+    if (keypad[key])
+    {
+        pc += 2; // skips over next instruction
+    }
+}
+
+// Instruction: SKNP Vx
+// Skips the next instruction if user does not press the key with the value of Vx
+// Note, pc already incremented, so to skip the next instruction, increment pc only once to skip
+void Chip8::OP_ExA1_SKNP(){
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+        uint8_t key = registers[Vx];
+
+        if (!keypad[key])
+        {
+            pc += 2; // skips over next instruction
+        }
+}
+
+// Instruction:  LD Vx, DT
+// Sets Vx with a delay timer value
+void Chip8::OP_Fx07_LD(){
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    registers[Vx] = delayTimer;
+}
+
+// Instruction: LD Vx, K
+// Waits for a key press, then stores the value in Vx
+// Note, pc is already incremented by here, this function may decrement pc to repeat this instruction
+void Chip8::OP_Fx0A_LD(){
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    if (keypad[0])
+        registers[Vx] = 0;
+    else if (keypad[1])
+        registers[Vx] = 1;
+    else if (keypad[2])
+        registers[Vx] = 2;
+    else if (keypad[3])
+        registers[Vx] = 3;
+    else if (keypad[4])
+        registers[Vx] = 4;
+    else if (keypad[5])
+        registers[Vx] = 5;
+    else if (keypad[6])
+        registers[Vx] = 6;
+    else if (keypad[7])
+        registers[Vx] = 7;
+    else if (keypad[8])
+        registers[Vx] = 8;
+    else if (keypad[9])
+        registers[Vx] = 9;
+    else if (keypad[10])
+        registers[Vx] = 10;
+    else if (keypad[11])
+        registers[Vx] = 11;
+    else if (keypad[12])
+        registers[Vx] = 12;
+    else if (keypad[13])
+        registers[Vx] = 13;
+    else if (keypad[14])
+        registers[Vx] = 14;
+    else if (keypad[15])
+        registers[Vx] = 15;
+    else
+        pc -= 2; // waits whenever a keypad value is not detected (by running the same instruction repeatedly)
+}
+
+// Instruction: LD DT, Vx
+// Sets the Delay timer to the value in Vx
+void Chip8::OP_Fx15_LD(){
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    delayTimer = registers[Vx];
+}
+
+// Instruction: LD ST, Vx
+// Sets the Sound timer to the value in Vx
+void Chip8::OP_Fx18_LD(){
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    soundTimer = registers[Vx];
+}
+
+// Instruction: ADD I, Vx
+// Adds the Index register value with the value of Vx
+void Chip8::OP_Fx1E_ADD(){
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    index += registers[Vx];
+}
+
+// Instruction: LD F, Vx
+// Set the index register with the address of the sprite representing a digit in Vx.
+void Chip8::OP_Fx29_LD(){
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t digit = registers[Vx];
+    
+    // Font characters are 5 bytes each
+    index = FONTSET_START_ADDRESS + (5 * digit);
+}
+// Instruction: LD B, Vx
+// Stores the Binary Coded Decimal (BCD) of Vx in locations I, I+1, and I+2.
+void Chip8::OP_Fx33_LD(){
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t value = registers[Vx];
+    
+    // 8 bit = maximum of 255
+    // oneth digit
+    memory[index + 2] = value % 10; // eg, 255 % 10 = 5
+    value /= 10; // eg 255 / 10 = 25.5
+
+    // Tenth digit
+    memory[index + 1] = value % 10; // eg 25 % 10 = 5
+    value /= 10; // eg 25 / 10 = 2.5
+
+    // Hundredth digit
+    memory[index] = value % 10; // eg 2 % 10 = 2
+}
+
+// Instruction: LD [I], Vx
+// Stores registers V0 through Vx in memory, starting from location I
+void Chip8::OP_Fx55_LD(){
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    for (uint8_t i = 0; i <= Vx; ++i)
+    {
+        memory[index + i] = registers[i];
+    }
+}
+
+// Instruction: LD Vx, [I]
+// Loads registers V0 through Vx from memory, starting from location I
+void Chip8::OP_Fx65_LD(){
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    for (uint8_t i = 0; i <= Vx; ++i)
+    {
+        registers[i] = memory[index + i];
     }
 }

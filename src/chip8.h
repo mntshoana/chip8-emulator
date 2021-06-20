@@ -88,6 +88,28 @@ public:
     void OP_Cxkk_RND(); // note, instruction looks like: RND Vx, byte
     // Displays n-byte sprite from I at (Vx, Vy), and sets VF to express a collision.
     void OP_Dxyn_DRW(); // note, instruction looks like: DRW Vx, Vy, nibble
+    // Skips the next instruction if user presses the key with the value of Vx
+    void OP_Ex9E_SKNP(); // note, instruction looks like: SKP Vx
+    // Skips the next instruction if user does not press the key with the value of Vx
+    void OP_ExA1_SKNP(); // note, instruction looks like: SKNP Vx
+    // Sets Vx with a delay timer value
+    void OP_Fx07_LD(); // note, instruction looks like: LD Vx, DT
+    // Waits for a key press, then stores the value in Vx
+    void OP_Fx0A_LD(); // note, instruction looks like: LD Vx, K
+    // Sets the Delay timer to the value in Vx
+    void OP_Fx15_LD(); // note, instruction looks like: LD DT, Vx
+    // Sets the Sound timer to the value in Vx
+    void OP_Fx18_LD(); // note, instruction looks like: LD ST, Vx
+    // Adds the Index register with the value of Vx
+    void OP_Fx1E_ADD(); // note, instruction looks like: ADD I, Vx
+    // Set the index register with the address of the sprite representing a digit in Vx.
+    void OP_Fx29_LD(); // note, instruction looks like: LD F, Vx
+    // Stores the Binary Coded Decimal (BCD) of Vx in locations I, I+1, and I+2.
+    void OP_Fx33_LD(); // note, instruction looks like: LD B, Vx
+    // Stores registers V0 through Vx in memory, starting from location I
+    void OP_Fx55_LD(); // note, instruction looks like: LD [I], Vx
+    // Loads registers V0 through Vx from memory, starting from location I
+    void OP_Fx65_LD(); // note, instruction looks like: LD Vx, [I]
 };
 
 #endif
