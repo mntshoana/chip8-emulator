@@ -21,6 +21,21 @@ class Chip8 {
     uint8_t  sp{}; // 8 bit stack pointer
     uint8_t  delayTimer{}; // 8 bit delay timer
     uint8_t  soundTimer{}; // 8 bit sound timer
+    
+    uint16_t opcode; // for holding any of the 34 instructions
+    
+
+    std::default_random_engine ranomdGenerator;
+    std::uniform_int_distribution<uint8_t> randDistribByte;
+public:
+    Chip8(); // Constructor
+    
+    void LoadROM(char const* filename);
+    // Emulates the Fetch, Decode, Execute clock cycle of the Chip8 CPU
+    void cycle();
+    
+    uint32_t displayMemory[64 * 32]{}; // 64x32 Monochrome Display Memory
+    uint8_t  keypad[16]{}; // 16 input keys
     /*
      Keypad       Keyboard
      +-+-+-+-+    +-+-+-+-+
@@ -33,28 +48,8 @@ class Chip8 {
      |A|0|B|F|    |Z|X|C|V|
      +-+-+-+-+    +-+-+-+-+
      */
-    uint8_t  keypad[16]{}; // 16 input keys
-    uint32_t displayMemory[64 * 32]{}; // 64x32 Monochrome Display Memory
-    
-    uint16_t opcode; // for holding any of the 34 instructions
-    
-    //
-    //
-    //
-    std::default_random_engine ranomdGenerator;
-    std::uniform_int_distribution<uint8_t> randDistribByte;
-    
-public:
-    // Constructor
-    Chip8();
-    
-    void LoadROM(char const* filename);
-    // Emulates the Fetch, Decode, Execute clock cycle of the Chip8 CPU
-    void cycle();
-
 private:
-    // Functions to map to opcode
-    
+// Functions to map to opcode
     // Clear the display
     void OP_00E0_CLS();
     // Returns from a subroutine
@@ -121,6 +116,10 @@ private:
     void OP_Fx55_LD(); // note, instruction looks like: LD [I], Vx
     // Loads registers V0 through Vx from memory, starting from location I
     void OP_Fx65_LD(); // note, instruction looks like: LD Vx, [I]
+    
+    ///
+    //  Mappings opcode to opcode functions
+    //
     
     // Sets up the Pointer Table
     // This array is used to index the mapped opcode functions using the opcode itself
