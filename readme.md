@@ -9,7 +9,9 @@ To run the emulator
 ````
 bin/chip8-emulator.o
 ````
-To run the tests
+This will run the emulator with the default rom of tetris.ch8, however, it accepts arguments as follows:
 ````
-bin/test.o
+bin/chip8-emulator.o [video-Scaler-Int] [delay-Time-Int] [path to rom]
 ````
+ - the first 2 are optional
+ - if you provide an incorrect path, the emulator will crash. /*Todo*/

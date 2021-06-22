@@ -1,16 +1,31 @@
 #include "chip8.h"
 #include "engine.h"
 
+#include <iostream>
 #include <thread>
 
 int main (int argc, char* argv[]){
+
     // Scale video ratio. CHIP-8 is very small (64x32)
     int videoScaler = 10; // for now
     // Slow down the clock rate
     int delay = 3; // for now
     // Rom
-    const char* path = "roms/tetris.ch8";
-
+    char* path = "roms/tetris.ch8";
+    
+    if (argc == 2){ // prgName [Rom]
+        path = argv[1];
+    }
+    else if (argc == 4){ // prgName [videoScaler] [delay] [Rom]
+        videoScaler = std::stoi(argv[1]);
+        delay = std::stoi(argv[2]);
+        path = argv[4];
+    }
+    else {
+        std::cerr << "NOTE!!!" << std::endl;
+        std::cerr << " - Arguments where not properly provided. Using defaule of 10 3 \"rom/tetris.ch8\"" << std::endl;
+    }
+    
     Engine engine("CHIP-8 Emulator",
                     VIDEO_WIDTH * videoScaler,
                     VIDEO_HEIGHT * videoScaler, /*window*/
