@@ -29,6 +29,7 @@ class Chip8 {
     std::uniform_int_distribution<uint8_t> randDistribByte;
 public:
     Chip8(); // Constructor
+    Chip8(const char* romPath);
     
     void LoadROM(char const* filename);
     // Emulates the Fetch, Decode, Execute clock cycle of the Chip8 CPU

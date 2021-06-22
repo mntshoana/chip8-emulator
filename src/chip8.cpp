@@ -20,6 +20,9 @@ Chip8::Chip8() {
     // prepare array of function pointers for the opcode. 
     setUpPointerTable();
 }
+Chip8::Chip8(const char* romPath) : Chip8(){
+    LoadROM(romPath);
+}
 
 void Chip8::LoadROM(char const* filename){
     // File will carry stream of binary with instructions
